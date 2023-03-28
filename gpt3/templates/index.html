@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload</title>
+    <!-- Bootstrap CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+      <style>
+      @keyframes spinner {
+        0% {
+          transform: translate3d(-50%, -50%, 0) rotate(0deg);
+        }
+        100% {
+          transform: translate3d(-50%, -50%, 0) rotate(360deg);
+        }
+      }
+      .spin::before {
+        animation: 1.5s linear infinite spinner;
+        animation-play-state: inherit;
+        border: solid 5px #cfd0d1;
+        border-bottom-color: #1c87c9;
+        border-radius: 50%;
+        content: "";
+        height: 40px;
+        width: 40px;
+        position: absolute;
+        left: 50%;
+        transform: translate3d(-50%, -50%, 0);
+        will-change: transform;
+      }
+    </style>
+</head>
+<body  style="height: 100vh; background-color: #a7cdcc;">
+
+    <div class="frame">
+	    <div class="center">
+    		<div class="title">
+    			<h3>Drop file to upload</h3>
+    		</div>
+    
+    		<div class="dropzone">
+    			<img src="http://100dayscss.com/codepen/upload.svg" class="upload-icon" />
+    			<input type="file" id="file" class="upload-input" onchange="uploadbtn()" />
+    		</div>
+    		<button type="button" data-modal="#modal" class="btn btn-success" id="uploadbtn" data-toggle="modal" data-target="#myModal" name="uploadbutton" disabled=true onclick="uploadFile();">Upload file</button>
+    		<p>Choose pdf file or doc file</p>
+		  </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" role="dialog">
+      <div class="modal-dialog modal-lg">
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Sumary</h4>
+          </div>
+          <div class="modal-body">
+            <p id="sumary-content"></p>
+            <div class="spin" id="spinbox"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal" onclick="toggleSpinbox()">Close</button>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script>
+        function uploadFile() {
+            var content   = document.getElementById('sumary-content');
+            var spinbox   = document.getElementById('spinbox');
+            
+            content.innerHTML = ''
+            
+            var data = new FormData();
+            
+            data.append("file", $("input[id^='file']")[0].files[0]);
+            data.append("csrfmiddlewaretoken", "{{ csrf_token }}");
+            $.ajax({
+                method: "POST",
+                url: "{% url 'upload_file' %}",
+                processData: false,
+                contentType: false,
+                mimeType: "multipart/form-data",
+                data: data,
+                success: function(res) {
+                  let  resp = JSON.parse(res)
+                  // console.log(resp.link);
+                  spinbox.style.display = "none";
+                  content.innerHTML = resp.link;
+                },
+                timeout: 6000000000
+            });
+        }
+        function uploadbtn() {
+          $('#uploadbtn').prop('disabled', false);
+        }
+        function toggleSpinbox() {
+          var spinbox   = document.getElementById('spinbox');
+          spinbox.style.display = "block";
+        }
+    </script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</body>
+</html>
